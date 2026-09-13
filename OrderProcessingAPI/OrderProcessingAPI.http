@@ -1,0 +1,59 @@
+@OrderProcessingAPI_HostAddress = http://localhost:5181
+
+### Склад
+GET {{OrderProcessingAPI_HostAddress}}/api/inventory
+Accept: application/json
+
+### Успешный заказ
+POST {{OrderProcessingAPI_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "student@example.com",
+  "productSku": "SKU-BOOK",
+  "quantity": 1
+}
+
+### Оплата падает — должна отработать компенсация резерва
+POST {{OrderProcessingAPI_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "fail-pay@example.com",
+  "productSku": "SKU-BOOK",
+  "quantity": 1,
+  "failPayment": true
+}
+
+### Отгрузка падает — refund + release
+POST {{OrderProcessingAPI_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerEmail": "fail-ship@example.com",
+  "productSku": "SKU-MUG",
+  "quantity": 1,
+  "failShipment": true
+}
+
+### Список заказов
+GET {{OrderProcessingAPI_HostAddress}}/api/orders
+Accept: application/json
+
+### Карточка заказа (подставьте id)
+GET {{OrderProcessingAPI_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Outbox
+GET {{OrderProcessingAPI_HostAddress}}/api/outbox
+Accept: application/json
+
+### Имитация падения: публикатор выключен, событие остаётся в outbox
+POST {{OrderProcessingAPI_HostAddress}}/api/demo/outbox/pause
+
+###
+POST {{OrderProcessingAPI_HostAddress}}/api/demo/outbox/resume
+
+### Повторная доставка OrderCreated (подставьте id из /api/outbox)
+POST {{OrderProcessingAPI_HostAddress}}/api/demo/replay/00000000-0000-0000-0000-000000000000
+
